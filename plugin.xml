@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin id="rcpclojure.application">
+
+   <extension id="application" point="org.eclipse.core.runtime.applications">
+      <application>
+         <run class="rcpclojure.Application" />
+      </application>
+   </extension>
+   
+   <extension point="org.eclipse.ui.perspectives">
+      <perspective name="RCP Perspective" class="rcpclojure.Perspective" id="rcpclojure.perspective" />
+   </extension>
+   
+   <extension point="org.eclipse.ui.views">
+      <view name="Message"
+            allowMultiple="true"
+            icon="icons/sample2.gif"
+            class="rcpclojure.View"
+            id="rcpclojure.view" />
+      <view name="Mailboxes"
+            allowMultiple="true"
+            icon="icons/sample3.gif"
+            class="rcpclojure.NavigationView"
+            id="rcpclojure.navigationView" />
+   </extension>
+   
+   <extension point="org.eclipse.ui.commands">
+      <category name="Mail" id="rcpclojure.category" />
+      <command name="Open Mailbox"
+               description="Opens a mailbox"
+               categoryId="rcpclojure.category"
+               id="rcpclojure.open" />
+      <command name="Open Message Dialog"
+               description="Open a message dialog"
+               categoryId="rcpclojure.category"
+               id="rcpclojure.openMessage" />
+   </extension>
+   
+   <extension point="org.eclipse.ui.bindings">
+      <key commandId="rcpclojure.open"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+           sequence="CTRL+2" />
+      <key commandId="rcpclojure.openMessage"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+           sequence="CTRL+3" />
+      <key commandId="org.eclipse.ui.file.exit"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+           sequence="CTRL+X" />
+   </extension>
+   
+   <extension id="product" point="org.eclipse.core.runtime.products">
+      <product application="rcpclojure.application" name="RCP-Clojure">
+         <property name="aboutText" value="Example Eclipse RCP product written in Clojure.  Based on the RCP Mail template created by PDE." />
+         <property name="windowImages" value="icons/sample2.gif" />
+         <property name="aboutImage" value="product_lg.gif" />
+         <property name="appName" value="RCP-Clojure" />
+      </product>
+   </extension>
+
+</plugin>

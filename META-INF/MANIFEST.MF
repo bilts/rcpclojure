@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RCP-Clojure
+Bundle-SymbolicName: rcpclojure;singleton:=true
+Bundle-Version: 0.1.0.dev
+Bundle-Activator: rcpclojure.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Classpath: lib/clojure.jar,
+ lib/clojure-contrib.jar,
+ .

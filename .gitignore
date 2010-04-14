@@ -1,0 +1,8 @@
+bin
+dist
+build.xml
+temp-*
+build/pde-build
+build/eclipse
+build/deltapack
+eclipse-*.zip
