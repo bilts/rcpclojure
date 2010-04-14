@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Emutable" default="deploy" basedir="..">
+
+  <!-- Targets for cleanup -->
+
+  <target name="clean-plugin" depends="init-properties">
+    <delete file="${deployment.plugin.dir}/${jar.output.file}" />
+    <delete dir="${bin.dir}"/>
+    <delete includeemptydirs="true" failonerror="false">
+      <fileset dir="${deployment.config.dir}">
+        <include name="**/*" />
+        <exclude name="config.ini" />
+      </fileset>
+    </delete>
+  </target>
+
+  <target name="clean-product" depends="init-properties">
+    <delete dir="${buildDirectory}" />
+    <delete file="build.xml" />
+  </target>
+
+  <target name="clean" depends="clean-plugin, clean-product"
+    description="Clean temporary build artifacts" />
+
+  <target name="dist-clean" depends="clean"
+    description="Clean all build artifacts, including distributable files">
+    <delete dir="${dist.dir}" />
+  </target>
+
+
+  <!-- Targets for initialization -->
+
+  <target name="init-properties">
+	<property file="build.properties" />
+	<property name="src.dir" location="${src}" />
+	<property name="bin.dir" location="${bin}" />
+	<property name="lib.dir" location="${lib}" />
+	<property name="dist.dir" location="${dist}" />
+	<property name="deployment.plugin.dir" location="${deployment.dir}/plugins" />
+	<property name="deployment.config.dir" location="${deployment.dir}/configuration" />
+	<property name="jar.output.file" value="${app.name}_${app.version}.jar" />
+  </target>
+
+  <target name="init" depends="init-properties">
+    <tstamp/>
+
+    <mkdir dir="${bin.dir}"/>
+    <mkdir dir="${dist.dir}/"/>
+
+    <path id="project.class.path">
+      <pathelement location="${src.dir}" />
+      <pathelement location="${bin.dir}" />
+      <fileset dir="${lib}">
+        <include name="**/*.jar"/>
+      </fileset>
+      <fileset dir="${rcp.eclipse.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </path>
+  </target>
+
+
+  <!-- Targets for building the plugin -->
+
+  <target name="compile" depends="clean-plugin, init"
+        description="Compile the plugin source">
+    <javac srcdir="${src.dir}" destdir="${bin.dir}" classpathref="project.class.path" />
+    <clojurec srcdir="${src.dir}" destdir="${bin.dir}" classpathref="project.class.path" />
+  </target>
+
+  <target name="plugin" depends="compile" description="Build the plugin jar">
+    <jar jarfile="${dist}/${jar.output.file}" manifest="${manifest}">
+      <fileset dir="${bin.dir}" />
+      <fileset dir="${basedir}" includes="${bin.includes}" />
+    </jar>
+  </target>
+
+  <target name="deploy" depends="plugin" description="Deploy the plugin">
+    <copy file="${dist}/${jar.output.file}" todir="${deployment.plugin.dir}" overwrite="true" />
+  </target>
+
+  <target name="run" depends="init-properties" description="Run the application">
+  	<exec dir="${deployment.dir}" executable="${basedir}/${deployment.executable}" spawn="true" />
+  </target>
+
+  
+  <!-- Targets building the RCP product -->
+
+  <target name="product" description="Build the full PDE product"
+    depends="dist-clean, antrunner-product-internal, product-internal" />
+
+  <target name="antrunner-product-internal" depends="init" unless="eclipse.running">
+    <!-- Runs the product-internal task through eclipse's antRunner -->
+
+    <!-- Locate the launcher in the SDK directory -->
+    <fileset id="launcher.dirs" dir="${pde.eclipse.dir}" includes="plugins/org.eclipse.equinox.launcher_*.jar" />
+    <pathconvert property="launcher.dir" pathsep="ERROR" refid="launcher.dirs" />
+
+    <java jar="${launcher.dir}" dir="${build.dir}" fork="true" spawn="false" failonerror="true">
+      <jvmarg value="-Xmx512M" />
+      <arg line="-application org.eclipse.ant.core.antRunner"/>
+      <arg value="product-internal" />
+    </java>
+  </target>
+
+  <target name="product-internal" depends="init" if="eclipse.running">
+    <ant antfile="${eclipse.pdebuild.scripts}/productBuild/productBuild.xml" />
+
+    <move todir="${dist.dir}">
+      <fileset dir="${buildDirectory}/${buildLabel}" includes="**/*.zip" />
+    </move>
+    <unzip src="${dist.dir}/${buildId}-${baseos}.${basews}.${basearch}.zip" dest="${dist.dir}" overwrite="true" />
+  </target>
+
+  <target name="setup" depends="init-properties" description="Setup the environment for Eclipse RCP builds">
+    
+    <echo message="Downloading the eclipse deltapack, approx 67MB" />
+    <!-- <get src="${deltapack.url}" dest="${build.dir}/eclipse-deltapack.zip" verbose="on" /> -->
+    <unzip src="${build.dir}/eclipse-deltapack.zip" dest="${build.dir}" />
+    <move file="${build.dir}/eclipse" tofile="${deltapack.eclipse.dir}" />
+    <echo message="Downloading the eclipse platform, approx 50MB" />
+    <!-- <get src="${platform.url}" dest="${build.dir}/eclipse-platform.zip" verbose="on" /> -->
+    <unzip src="${build.dir}/eclipse-platform.zip" dest="${build.dir}" />
+    <move file="${build.dir}/eclipse" tofile="${pde.eclipse.dir}" />
+    <echo message="Installing PDE Build plugin" />
+    
+    <exec executable="${build.dir}/eclipse/eclipsec.exe">
+      <arg line="-application org.eclipse.equinox.p2.director" />
+      <arg line="-repository http://download.eclipse.org/releases/galileo/" />
+      <arg line="-installIU org.eclipse.pde.build" />
+      <arg line="-nosplash" />
+    </exec>
+  </target>
+  
+
+  <!-- Targets for PDE custom callbacks -->
+
+  <!-- 
+    For details on how to use or modify custom PDE callbacks, see:
+    http://help.eclipse.org/galileo/topic/org.eclipse.pde.doc.user/tasks/pde_custom_callbacks.htm
+  -->
+  <target name="post.gather.bin.parts" depends="compile">
+    <copy todir="${target.folder}" overwrite="true">
+      <fileset dir="${bin.dir}" />
+    </copy>
+  </target>
+
+  <!-- Empty PDE custom callbacks -->
+  <target name="pre.build.jars" />
+  <target name="post.build.jars" />
+  <target name="pre.build.sources" />
+  <target name="post.build.sources" />
+  <target name="pre.name" />
+  <target name="pre.@dot" />
+  <target name="post.compile.name" />
+  <target name="post.compile.@dot" />
+  <target name="post.name" />
+  <target name="post.@dot" />
+  <target name="pre.gather.bin.parts" />
+  <target name="pre.gather.sources" />
+  <target name="post.gather.sources" />
+  <target name="pre.gather.logs" />
+  <target name="post.gather.logs" />
+  <target name="pre.clean" />
+  <target name="post.clean" />
+
+  <!-- Macros -->
+  <macrodef name="clojurec" description="Compile clojure files in a directory">
+    <attribute name="srcdir"/>
+    <attribute name="destdir"/>
+    <attribute name="classpath" default=""/>
+    <attribute name="classpathref" default=""/>
+    <attribute name="tempdir" default="${basedir}"/>
+    <sequential>
+      <!-- Locate clojure files -->
+      <pathconvert pathsep=" " property="clojurec.file.names">
+        <fileset dir="@{srcdir}">
+          <include name="**/*.clj"/>
+        </fileset>
+      </pathconvert>
+      <!-- Write to a temporary .properties file -->
+      <echo file="@{tempdir}/temp-clojurec-packages.properties" 
+        message="clojurec.packages = ${clojurec.file.names}"
+        append="false">
+      </echo>
+
+      <!-- Transform the file paths into package paths -->
+      <property name="clojurec.src.dir" location="@{srcdir}" />
+      <replace file="@{tempdir}/temp-clojurec-packages.properties">
+        <replacefilter token="${clojurec.src.dir}${file.separator}" value="" />
+        <replacefilter token=".clj" value="" />
+        <replacefilter token="_" value="-" />
+        <replacefilter token="${file.separator}" value="." />
+      </replace>
+
+      <!-- Read and compile the clojure packages -->
+      <property file="@{tempdir}/temp-clojurec-packages.properties" />
+      <java failonerror="true" classname="clojure.lang.Compile" spawn="false" classpathref="@{classpathref}" classpath="@{classpath}">
+        <sysproperty key="clojure.compile.path" value="@{destdir}"/>
+        <arg line="${clojurec.packages}" />
+      </java>
+      <delete file="@{tempdir}/temp-clojurec-packages.properties" />
+    </sequential>
+  </macrodef>
+</project>
