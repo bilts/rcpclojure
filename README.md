@@ -21,6 +21,7 @@ JRE, you need the 32-bit version of Eclipse.
 
     cd build
     ant setup product run
+
 Expect the preceding command to take a long time as the product downloads (around 120MB).
 
 ### build.properties
@@ -36,7 +37,8 @@ Update the following properties in build.properties for your platform:
 You may obtain all of the prerequisites through an ant task as follows:
 
 If you are not running on Windows with a 32-bit JRE, set the following properties in build.properties to point to the eclipse
-downloads for your platform.  You may find the proper URLs from this site: http://download.eclipse.org/eclipse/downloads/
+downloads for your platform.  You may find the proper URLs from this site: 
+[http://download.eclipse.org/eclipse/downloads/](http://download.eclipse.org/eclipse/downloads/)
 
     platform.url = http://download.eclipse.org/eclipse/downloads/drops/R-3.5.2-201002111343/eclipse-platform-3.5.2-win32.zip
     deltapack.url = http://download.eclipse.org/eclipse/downloads/drops/R-3.5.2-201002111343/eclipse-3.5.2-delta-pack.zip
@@ -46,7 +48,8 @@ eclipse platforms and plugins.
 
 ### Manual
 
-From http://download.eclipse.org/eclipse/downloads/ download the following items for the latest release
+From [http://download.eclipse.org/eclipse/downloads/](http://download.eclipse.org/eclipse/downloads/) download the following items for the latest release
+
 - Platform Runtime Binary for your platform
 - PDE Runtime Binary
 - Deltapack
@@ -54,6 +57,7 @@ From http://download.eclipse.org/eclipse/downloads/ download the following items
 Unzip the first two items into the same folder, and the last into a separate folder.
 
 Update the following properties in build.properties:
+
     rcp.eclipse.dir = <Path to Platform Runtime Binary> 
     pde.eclipse.dir = <Path to Platform Runtime Binary>
     deltapack.eclipse.dir = <Path to Deltapack>
@@ -61,9 +65,13 @@ Update the following properties in build.properties:
 ## Building
 
 The RCP product and plugin can be built using the following ant tasks in build/build.xml:
+
 - product: Builds the RCP product.  This only needs to be run when new plugin dependencies are added or when the product executable needs to be rebuilt
 - deploy: Builds and deploys the product's main plugin.  This runs much faster than the product task.
 - run: Runs the product
 - clean: Cleans up temporary build files
 - dist-clean: Cleans up both temporary build files and distributable builds
- 
+
+## License
+
+The software is licensed under the Eclipse Public License - v 1.0 [http://www.eclipse.org/legal/epl-v10.html](http://www.eclipse.org/legal/epl-v10.html)
